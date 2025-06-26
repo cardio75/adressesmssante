@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Recherche d'Adresses MSSanté</title>
+    <!-- Favicon avec loupe et MS -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='35' cy='35' r='25' fill='none' stroke='%232c5aa0' stroke-width='4'/><line x1='55' y1='55' x2='75' y2='75' stroke='%232c5aa0' stroke-width='4'/><text x='50' y='55' text-anchor='middle' font-family='Arial, sans-serif' font-size='20' font-weight='bold' fill='%232c5aa0'>MS</text></svg>">
+    <!-- Intégration de Bootstrap pour le style -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        :root {
+            /* Palette moderne et sobre */
+            --primary-color: #2c5aa0;      /* Bleu médical professionnel */
+            --secondary-color: #f8f9fa;    /* Gris très clair */
+            --accent-color: #28a745;       /* Vert pour les actions positives */
+            --text-primary: #2c3e50;       /* Bleu foncé pour le texte */
+            --text-secondary: #6c757d;     /* Gris pour le texte secondaire */
+            --border-color: #e9ecef;       /* Gris clair pour les bordures */
+            --background-light: #ffffff;   /* Blanc pur */
+            --background-subtle: #f8f9fa; /* Gris très subtil */
+            --shadow: 0 2px 10px rgba(0,0,0,0.1); /* Ombre douce */
+        }
+
+        body {
+            margin: 20px;
+            background: linear-gradient(135deg, var(--background-subtle) 0%, var(--background-light) 100%);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            background: var(--background-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            background: var(--background-light);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
+            background: var(--background-light);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1rem;
+            background: var(--background-light);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .card-text {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e4a7a;
+            border-color: #1e4a7a;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .copy-btn {
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        #results {
+            margin-top: 2rem;
+        }
+
+        #loadingSearch {
+            display: none;
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner-border {
+            color: var(--primary-color) !important;
+        }
+
+        /* Style pour la date d'extraction */
+        .update-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Animation pour les résultats */
+        .card {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Affichage de la date d'extraction -->
+    <p class="update-date">Données mises à jour le {{ extraction_date }}</p>
+
+    <h1>🔍 Recherche d'Adresses MSSanté</h1>
+
+    <!-- Formulaire de recherche -->
+    <div class="form-group" id="searchContainer">
+        <input type="text" id="nomInput" class="form-control mb-3" placeholder="👤 Nom">
+        <input type="text" id="prenomInput" class="form-control mb-3" placeholder="👤 Prénom">
+        <input type="text" id="villeInput" class="form-control mb-3" placeholder="🏙️ Ville">
+        <input type="text" id="codePostalInput" class="form-control mb-3" placeholder="📮 Code Postal">
+        <input type="text" id="specialtyInput" class="form-control mb-3" placeholder="🏥 Spécialité">
+    </div>
+
+    <!-- Indicateur de chargement pendant la recherche -->
+    <div id="loadingSearch">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Recherche en cours...</span>
+        </div>
+        <p>🔍 Recherche en cours...</p>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<!-- Inclusion de jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        function search() {
+            const nom = $('#nomInput').val();
+            const prenom = $('#prenomInput').val();
+            const ville = $('#villeInput').val();
+            const code_postal = $('#codePostalInput').val();
+            const specialty = $('#specialtyInput').val();
+
+            if (!nom && !prenom && !ville && !code_postal && !specialty) {
+                $('#results').empty();
+                return;
+            }
+
+            $('#loadingSearch').show();
+
+            $.getJSON('/search', {
+                nom: nom,
+                prenom: prenom,
+                ville: ville,
+                code_postal: code_postal,
+                specialty: specialty
+            }, function(results) {
+                displayResults(results);
+                $('#loadingSearch').hide();
+            });
+        }
+
+        // Recherche en temps réel sur les champs
+        $('#nomInput, #prenomInput, #villeInput, #codePostalInput, #specialtyInput').on('input', function() {
+            search();
+        });
+
+        // Fonction pour afficher les résultats
+        function displayResults(results) {
+            const resultsDiv = $('#results');
+            resultsDiv.empty();
+
+            if (results.length === 0) {
+                resultsDiv.html('<div class="text-center text-muted mt-4"><p>🔍 Aucun résultat trouvé.</p></div>');
+                return;
+            }
+
+            results.forEach(item => {
+                const resultItem = $(`
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">👨‍⚕️ ${item.nom_exercice} ${item.prenom_exercice}</h5>
+                            <p class="card-text"><strong>🏥 Spécialité :</strong> ${item.specialty}</p>
+                            <p class="card-text"><strong>📍 Adresse :</strong> ${item.adresse_complete}</p>
+                            <p class="card-text"><strong>📮 Code Postal :</strong> ${item.code_postal}</p>
+                            <p class="card-text"><strong>🏙️ Ville :</strong> ${item.ville}</p>
+                            <div class="d-flex align-items-center">
+                                <p class="mb-0"><strong>💻 Adresse MSSanté :</strong> ${item.adresse_mssante}</p>
+                                <button class="btn btn-primary btn-sm ml-auto copy-btn" data-address="${item.adresse_mssante}">📋 Copier</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                resultsDiv.append(resultItem);
+            });
+        }
+
+        // Gestionnaire pour le bouton de copie
+        $(document).on('click', '.copy-btn', function() {
+            const address = $(this).data('address');
+            
+            // Méthode compatible avec tous les navigateurs et réseaux
+            if (navigator.clipboard && window.isSecureContext) {
+                // Méthode moderne (HTTPS/localhost)
+                navigator.clipboard.writeText(address).then(() => {
+                    showCopySuccess(this);
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(address, this);
+                });
+            } else {
+                // Méthode de fallback pour HTTP/réseau
+                fallbackCopyTextToClipboard(address, this);
+            }
+        });
+
+        // Fonction de fallback pour la copie
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess(button);
+                } else {
+                    showCopyError(button);
+                }
+            } catch (err) {
+                showCopyError(button);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Fonction pour afficher le succès de la copie
+        function showCopySuccess(button) {
+            const originalText = $(button).text();
+            $(button).text('✅ Copié !').removeClass('btn-primary').addClass('btn-success');
+            setTimeout(() => {
+                $(button).text(originalText).removeClass('btn-success').addClass('btn-primary');
+            }, 2000);
+        }
+
+        // Fonction pour afficher l'erreur de copie
+        function showCopyError(button) {
+            const originalText = $(button).text();
+            $(button).text('❌ Erreur').removeClass('btn-primary').addClass('btn-danger');
+            setTimeout(() => {
+                $(button).text(originalText).removeClass('btn-danger').addClass('btn-primary');
+            }, 2000);
+        }
+    });
+</script>
+</body>
+</html>
