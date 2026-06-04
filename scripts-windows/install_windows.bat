@@ -31,9 +31,6 @@ call venv\Scripts\activate.bat
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-echo Installation de Playwright...
-python -m playwright install
-
 echo.
 echo Installation terminee !
 echo Pour demarrer : scripts-windows\lancer_base_mssante.bat

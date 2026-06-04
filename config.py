@@ -10,7 +10,8 @@ def get_local_ip():
         return "127.0.0.1"
 
 # Configuration simple
-HOST = get_local_ip()
+HOST = "0.0.0.0"
+LOCAL_IP = get_local_ip()
 PORT = 6150
 DEBUG = False
 DATABASE_PATH = 'adresses.db' 

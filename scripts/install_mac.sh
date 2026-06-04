@@ -26,10 +26,6 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Installer Playwright
-echo "🌐 Installation de Playwright..."
-python -m playwright install
-
 echo ""
 echo "✅ Installation terminée !"
 echo ""

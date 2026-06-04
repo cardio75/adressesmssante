@@ -26,10 +26,7 @@ python -m venv venv
 echo Installation des dependances...
 call venv\Scripts\activate.bat
 python -m pip install --upgrade pip
-pip install Flask>=2.3.3 playwright>=1.52.0
-
-echo Installation de Playwright...
-python -m playwright install
+pip install "Flask>=2.3.3"
 
 echo Creation de la base de donnees...
 python creer_bd_mssante.py

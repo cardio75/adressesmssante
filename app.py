@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import sqlite3
 import re
 from datetime import datetime
-from config import HOST, PORT, DEBUG, DATABASE_PATH
+from config import HOST, LOCAL_IP, PORT, DEBUG, DATABASE_PATH
 
 app = Flask(__name__)
 
@@ -111,6 +111,6 @@ def search():
         return jsonify({'error': 'Erreur lors de la recherche'}), 500
 
 if __name__ == '__main__':
-    print(f"🚀 Application démarrée sur http://{HOST}:{PORT}")
-    print(f"📱 Accessible depuis le réseau local")
+    print(f"🚀 Application démarrée sur http://localhost:{PORT}")
+    print(f"📱 Accessible depuis le réseau local : http://{LOCAL_IP}:{PORT}")
     app.run(host=HOST, port=PORT, debug=DEBUG)

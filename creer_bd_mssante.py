@@ -4,8 +4,16 @@ import sqlite3
 import csv
 import unicodedata
 import zipfile
+import urllib.parse
+import urllib.request
 from datetime import datetime
-from playwright.sync_api import sync_playwright
+from email.utils import parsedate_to_datetime
+
+EXTRACTION_DOWNLOAD_URL = "https://www.data.gouv.fr/api/1/datasets/r/afe01105-d9a1-41fe-921f-e40ea48b2ba6"
+EXTRACTION_FILE_MARKERS = (
+    "extraction_correspondance_mssante",
+    "extraction-correspondance-mssante",
+)
 
 def normalize_text(text):
     if text is None:
@@ -15,59 +23,73 @@ def normalize_text(text):
         if unicodedata.category(c) != 'Mn'
     ).lower()
 
+def is_extraction_file(filename):
+    filename_normalized = normalize_text(filename)
+    return filename_normalized.endswith('.txt') and any(
+        marker in filename_normalized for marker in EXTRACTION_FILE_MARKERS
+    )
+
+def find_extraction_files():
+    return [f for f in os.listdir('.') if is_extraction_file(f)]
+
+def extract_date_from_download(filename, final_url='', last_modified=''):
+    values = [filename, final_url]
+    for value in values:
+        date_match = re.search(r'(\d{8})[-_]?\d{4,6}', value or '')
+        if date_match:
+            return date_match.group(1)
+
+    if last_modified:
+        try:
+            return parsedate_to_datetime(last_modified).strftime('%Y%m%d')
+        except (TypeError, ValueError):
+            pass
+
+    return datetime.now().strftime('%Y%m%d')
+
+def filename_from_response(response):
+    filename = response.headers.get_filename()
+    if filename:
+        return os.path.basename(filename)
+
+    parsed_url = urllib.parse.urlparse(response.geturl())
+    filename = os.path.basename(parsed_url.path)
+    return filename or 'extraction-correspondance-mssante.txt'
+
 def download_and_extract():
-    with sync_playwright() as p:
-        # Démarrer le navigateur
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(accept_downloads=True)
-        page = context.new_page()
+    try:
+        print(f"📥 Téléchargement depuis data.gouv.fr...")
+        with urllib.request.urlopen(EXTRACTION_DOWNLOAD_URL) as response:
+            filename = filename_from_response(response)
+            download_path = os.path.join(os.getcwd(), filename)
+            final_url = response.geturl()
+            last_modified = response.headers.get('Last-Modified', '')
 
-        # Naviguer vers la page spécifiée
-        page.goto("https://annuaire.sante.fr/web/site-pro/extractions-mss")
+            with open(download_path, 'wb') as destination:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    destination.write(chunk)
 
-        # Attendre que la table soit chargée
-        page.wait_for_selector("table")
+        extraction_date = extract_date_from_download(filename, final_url, last_modified)
 
-        # Sélectionner le bouton "Télécharger" dans la dernière colonne de la dernière ligne
-        download_button = page.query_selector("table tbody tr:last-child td:last-child a")
-
-        if download_button:
-            # Gérer le téléchargement
-            with page.expect_download() as download_info:
-                download_button.click()
-            download = download_info.value
-
-            # Enregistrer le fichier téléchargé dans le répertoire courant
-            download_path = os.path.join(os.getcwd(), download.suggested_filename)
-            download.save_as(download_path)
-
-            # Décompresser le fichier téléchargé
+        if zipfile.is_zipfile(download_path):
             with zipfile.ZipFile(download_path, 'r') as zip_ref:
                 zip_ref.extractall(os.getcwd())
-
-            # Extraire la date du nom du fichier
-            filename = os.path.basename(download_path)
-            date_match = re.search(r'(\d{8})\d{4}\.zip$', filename)
-            if date_match:
-                extraction_date = date_match.group(1)  # 'YYYYMMDD'
-            else:
-                extraction_date = ''
-
-            # Supprimer le fichier ZIP téléchargé
             os.remove(download_path)
-
             print("Téléchargement et décompression terminés.")
-            return extraction_date
         else:
-            print("Bouton 'Télécharger' introuvable.")
-            return ''
+            print("Téléchargement terminé.")
 
-        # Fermer le navigateur
-        browser.close()
+        return extraction_date
+    except Exception as e:
+        print(f"❌ Erreur de téléchargement : {e}")
+        return ''
 
 def update_database(extraction_date):
     # Trouver le fichier texte extrait (ignorer requirements.txt et autres fichiers parasites)
-    extracted_files = [f for f in os.listdir('.') if f.endswith('.txt') and 'Extraction_Correspondance_MSSante' in f]
+    extracted_files = find_extraction_files()
     if not extracted_files:
         # Fallback: chercher n'importe quel fichier .txt sauf requirements.txt
         extracted_files = [f for f in os.listdir('.') if f.endswith('.txt') and f != 'requirements.txt']
@@ -253,17 +275,13 @@ def update_database(extraction_date):
 
 if __name__ == '__main__':
     # Vérifier si un fichier d'extraction existe déjà
-    existing_files = [f for f in os.listdir('.') if f.endswith('.txt') and 'Extraction_Correspondance_MSSante' in f]
+    existing_files = find_extraction_files()
     
     if existing_files:
         print(f"Utilisation du fichier existant : {existing_files[0]}")
         # Extraire la date du nom du fichier existant
         filename = existing_files[0]
-        date_match = re.search(r'(\d{8})\d{4}\.txt$', filename)
-        if date_match:
-            extraction_date = date_match.group(1)  # 'YYYYMMDD'
-        else:
-            extraction_date = datetime.now().strftime('%Y%m%d')
+        extraction_date = extract_date_from_download(filename)
     else:
         print("Téléchargement d'un nouveau fichier...")
         extraction_date = download_and_extract()

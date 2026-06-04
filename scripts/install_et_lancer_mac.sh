@@ -26,11 +26,7 @@ python3 -m venv venv
 echo "📦 Installation des dépendances..."
 source venv/bin/activate
 pip install --upgrade pip
-pip install Flask>=2.3.3 playwright>=1.52.0
-
-# Installer Playwright
-echo "🌐 Installation de Playwright..."
-python -m playwright install
+pip install "Flask>=2.3.3"
 
 # Créer la base de données
 echo "🗄️  Création de la base de données..."
@@ -46,7 +42,7 @@ echo "✅ Base de données créée avec succès"
 
 # Lancer l'application
 echo "🚀 Lancement de l'application..."
-echo "🌐 L'application sera accessible sur http://$(hostname -I | awk '{print $1}'):6150"
+echo "🌐 L'application sera accessible sur http://localhost:6150"
 echo ""
 echo "Appuyez sur Ctrl+C pour arrêter l'application"
 echo ""
