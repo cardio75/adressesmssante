@@ -5,7 +5,9 @@
 Cette installation ne demande pas Python.
 
 1. Ouvrir la page https://github.com/cardio75/adressesmssante/releases/latest
-2. Telecharger `Adresses-MSSante-Windows-arm64.zip`
+2. Telecharger le zip adapte :
+   - `Adresses-MSSante-Windows-x64.zip` pour la plupart des PC Windows Intel/AMD
+   - `Adresses-MSSante-Windows-arm64.zip` pour Windows ARM
 3. Extraire le zip
 4. Lancer `Adresses MSSante.exe`
 
@@ -68,3 +70,11 @@ L'executable est cree ici :
 ```text
 dist\Adresses MSSante\Adresses MSSante.exe
 ```
+
+Pour creer le zip a publier dans GitHub Releases :
+
+```powershell
+Compress-Archive -Path "dist\Adresses MSSante" -DestinationPath "dist\Adresses-MSSante-Windows-x64.zip" -Force
+```
+
+Utiliser `Windows-arm64` dans le nom du zip si le build a ete fait sur Windows ARM.

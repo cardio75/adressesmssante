@@ -29,7 +29,9 @@ Au premier lancement, macOS peut afficher un avertissement car l'application n'e
 
 ### Windows
 
-1. Télécharger `Adresses-MSSante-Windows-arm64.zip` depuis la page des releases
+1. Télécharger le zip Windows adapté depuis la page des releases :
+   - `Adresses-MSSante-Windows-x64.zip` pour la plupart des PC Windows Intel/AMD
+   - `Adresses-MSSante-Windows-arm64.zip` pour Windows ARM
 2. Ouvrir `Adresses MSSante.exe`
 3. L'application ouvre automatiquement le navigateur
 
@@ -79,10 +81,12 @@ Fichier généré : `dist\Adresses MSSante\Adresses MSSante.exe`
 Pour préparer un zip Windows à publier dans une release :
 
 ```powershell
-Compress-Archive -Path "dist\Adresses MSSante" -DestinationPath "dist\Adresses-MSSante-Windows-arm64.zip" -Force
+Compress-Archive -Path "dist\Adresses MSSante" -DestinationPath "dist\Adresses-MSSante-Windows-x64.zip" -Force
 ```
 
-Chaque build embarque Python, Flask, l'interface web et une copie initiale de `adresses.db`. Le build Mac doit être généré sur Mac, et le build Windows sur Windows.
+Adaptez le nom du zip à l'architecture de la machine de build : `Windows-x64` pour un PC Intel/AMD, `Windows-arm64` pour Windows ARM.
+
+Chaque build embarque Python, Flask, l'interface web et une copie initiale de `adresses.db`. Le build Mac doit être généré sur Mac, et le build Windows sur Windows. PyInstaller produit un binaire pour l'architecture du Python utilisé.
 
 ## 🧑‍💻 Installation depuis le code source
 

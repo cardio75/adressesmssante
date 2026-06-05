@@ -30,10 +30,19 @@ packaging\build_windows.bat
 
 Le resultat est cree dans `dist\Adresses MSSante\Adresses MSSante.exe`.
 
+Pour creer le zip a publier dans une release GitHub :
+
+```powershell
+Compress-Archive -Path "dist\Adresses MSSante" -DestinationPath "dist\Adresses-MSSante-Windows-x64.zip" -Force
+```
+
+Le dossier zippe doit contenir `Adresses MSSante.exe` et le dossier `_internal`. Ne publiez pas seulement le fichier `.exe`.
+
 ## Notes
 
 - Le build macOS doit etre lance sur macOS.
 - Le build Windows doit etre lance sur Windows.
+- PyInstaller genere un build pour l'architecture du Python utilise : `Windows-x64` sur un PC Intel/AMD, `Windows-arm64` sur Windows ARM.
 - Si `adresses.db` n'existe pas, le script lance `creer_bd_mssante.py` pour la creer avant le build.
 - `adresses.db` est incluse comme base initiale pour eviter aux utilisateurs d'installer Python ou de telecharger la base au premier lancement.
 - Au premier lancement de l'app autonome, la base incluse est copiee dans le dossier utilisateur.
