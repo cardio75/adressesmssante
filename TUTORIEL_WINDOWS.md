@@ -4,9 +4,10 @@
 
 Cette installation ne demande pas Python.
 
-1. Telecharger la version Windows generee
-2. Extraire le zip si necessaire
-3. Lancer `Adresses MSSante.exe`
+1. Ouvrir la page https://github.com/cardio75/adressesmssante/releases/latest
+2. Telecharger `Adresses-MSSante-Windows-arm64.zip`
+3. Extraire le zip
+4. Lancer `Adresses MSSante.exe`
 
 Windows SmartScreen peut afficher un avertissement car l'executable n'est pas signe.
 

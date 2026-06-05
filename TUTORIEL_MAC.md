@@ -4,10 +4,11 @@
 
 Cette installation ne demande pas Python.
 
-1. Telecharger `Adresses-MSSante-macOS-arm64.dmg`
-2. Ouvrir le fichier DMG
-3. Glisser `Adresses MSSante.app` vers `Applications`
-4. Ouvrir `Adresses MSSante.app`
+1. Ouvrir la page https://github.com/cardio75/adressesmssante/releases/latest
+2. Telecharger `Adresses-MSSante-macOS-arm64.dmg`
+3. Ouvrir le fichier DMG
+4. Glisser `Adresses MSSante.app` vers `Applications`
+5. Ouvrir `Adresses MSSante.app`
 
 Au premier lancement, macOS peut bloquer l'application car elle n'est pas signee. Dans ce cas :
 

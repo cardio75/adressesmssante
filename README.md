@@ -15,6 +15,9 @@ Application simple pour rechercher les adresses MSSanté des professionnels de s
 
 Cette option ne nécessite pas d'installer Python.
 
+Téléchargements officiels :
+https://github.com/cardio75/adressesmssante/releases/latest
+
 ### Mac
 
 1. Télécharger `Adresses-MSSante-macOS-arm64.dmg`
@@ -26,7 +29,7 @@ Au premier lancement, macOS peut afficher un avertissement car l'application n'e
 
 ### Windows
 
-1. Télécharger le dossier ou le zip Windows généré
+1. Télécharger `Adresses-MSSante-Windows-arm64.zip` depuis la page des releases
 2. Ouvrir `Adresses MSSante.exe`
 3. L'application ouvre automatiquement le navigateur
 
@@ -72,6 +75,12 @@ packaging\build_windows.bat
 ```
 
 Fichier généré : `dist\Adresses MSSante\Adresses MSSante.exe`
+
+Pour préparer un zip Windows à publier dans une release :
+
+```powershell
+Compress-Archive -Path "dist\Adresses MSSante" -DestinationPath "dist\Adresses-MSSante-Windows-arm64.zip" -Force
+```
 
 Chaque build embarque Python, Flask, l'interface web et une copie initiale de `adresses.db`. Le build Mac doit être généré sur Mac, et le build Windows sur Windows.
 
