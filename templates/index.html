@@ -147,9 +147,29 @@
         .update-date {
             font-size: 0.875rem;
             color: var(--text-secondary);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             text-align: center;
             font-style: italic;
+        }
+
+        .update-actions {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .update-status {
+            min-height: 1.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .update-status.success {
+            color: var(--accent-color);
+        }
+
+        .update-status.error {
+            color: #dc3545;
         }
 
         /* Animation pour les résultats */
@@ -185,7 +205,11 @@
 
 <div class="container">
     <!-- Affichage de la date d'extraction -->
-    <p class="update-date">Données mises à jour le {{ extraction_date }}</p>
+    <p class="update-date">Données mises à jour le <span id="extractionDate">{{ extraction_date }}</span></p>
+    <div class="update-actions">
+        <button id="updateDatabaseBtn" class="btn btn-outline-primary btn-sm">🔄 Mettre à jour la base</button>
+        <div id="updateStatus" class="update-status"></div>
+    </div>
 
     <h1>🔍 Recherche d'Adresses MSSanté</h1>
 
@@ -335,6 +359,49 @@
                 $(button).text(originalText).removeClass('btn-danger').addClass('btn-primary');
             }, 2000);
         }
+
+        function setUpdateStatus(message, state) {
+            $('#updateStatus')
+                .removeClass('success error')
+                .addClass(state || '')
+                .text(message || '');
+        }
+
+        function pollUpdateStatus() {
+            $.getJSON('/update_status', function(status) {
+                setUpdateStatus(status.message, status.success === true ? 'success' : status.success === false ? 'error' : '');
+
+                if (status.extraction_date) {
+                    $('#extractionDate').text(status.extraction_date);
+                }
+
+                if (status.running) {
+                    setTimeout(pollUpdateStatus, 2000);
+                    return;
+                }
+
+                $('#updateDatabaseBtn').prop('disabled', false).text('🔄 Mettre à jour la base');
+                if (status.error) {
+                    setUpdateStatus(`${status.message} ${status.error}`, 'error');
+                }
+            }).fail(function() {
+                $('#updateDatabaseBtn').prop('disabled', false).text('🔄 Mettre à jour la base');
+                setUpdateStatus('Erreur de communication avec l’application.', 'error');
+            });
+        }
+
+        $('#updateDatabaseBtn').on('click', function() {
+            $('#updateDatabaseBtn').prop('disabled', true).text('⏳ Mise à jour...');
+            setUpdateStatus('Démarrage de la mise à jour...', '');
+
+            $.post('/update_database', function(status) {
+                setUpdateStatus(status.message, '');
+                pollUpdateStatus();
+            }, 'json').fail(function() {
+                $('#updateDatabaseBtn').prop('disabled', false).text('🔄 Mettre à jour la base');
+                setUpdateStatus('Impossible de démarrer la mise à jour.', 'error');
+            });
+        });
     });
 </script>
 </body>

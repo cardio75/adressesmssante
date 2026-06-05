@@ -4,10 +4,16 @@ import sqlite3
 import csv
 import unicodedata
 import zipfile
+import tempfile
 import urllib.parse
 import urllib.request
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+
+try:
+    from config import DATABASE_PATH
+except ImportError:
+    DATABASE_PATH = 'adresses.db'
 
 EXTRACTION_DOWNLOAD_URL = "https://www.data.gouv.fr/api/1/datasets/r/afe01105-d9a1-41fe-921f-e40ea48b2ba6"
 EXTRACTION_FILE_MARKERS = (
@@ -29,8 +35,8 @@ def is_extraction_file(filename):
         marker in filename_normalized for marker in EXTRACTION_FILE_MARKERS
     )
 
-def find_extraction_files():
-    return [f for f in os.listdir('.') if is_extraction_file(f)]
+def find_extraction_files(directory='.'):
+    return [f for f in os.listdir(directory) if is_extraction_file(f)]
 
 def extract_date_from_download(filename, final_url='', last_modified=''):
     values = [filename, final_url]
@@ -56,12 +62,12 @@ def filename_from_response(response):
     filename = os.path.basename(parsed_url.path)
     return filename or 'extraction-correspondance-mssante.txt'
 
-def download_and_extract():
+def download_and_extract(download_dir='.'):
     try:
         print(f"📥 Téléchargement depuis data.gouv.fr...")
         with urllib.request.urlopen(EXTRACTION_DOWNLOAD_URL) as response:
             filename = filename_from_response(response)
-            download_path = os.path.join(os.getcwd(), filename)
+            download_path = os.path.join(download_dir, filename)
             final_url = response.geturl()
             last_modified = response.headers.get('Last-Modified', '')
 
@@ -76,7 +82,7 @@ def download_and_extract():
 
         if zipfile.is_zipfile(download_path):
             with zipfile.ZipFile(download_path, 'r') as zip_ref:
-                zip_ref.extractall(os.getcwd())
+                zip_ref.extractall(download_dir)
             os.remove(download_path)
             print("Téléchargement et décompression terminés.")
         else:
@@ -87,18 +93,18 @@ def download_and_extract():
         print(f"❌ Erreur de téléchargement : {e}")
         return ''
 
-def update_database(extraction_date):
+def update_database(extraction_date, data_dir='.', db_path=DATABASE_PATH):
     # Trouver le fichier texte extrait (ignorer requirements.txt et autres fichiers parasites)
-    extracted_files = find_extraction_files()
+    extracted_files = find_extraction_files(data_dir)
     if not extracted_files:
         # Fallback: chercher n'importe quel fichier .txt sauf requirements.txt
-        extracted_files = [f for f in os.listdir('.') if f.endswith('.txt') and f != 'requirements.txt']
+        extracted_files = [f for f in os.listdir(data_dir) if f.endswith('.txt') and f != 'requirements.txt']
     
     if not extracted_files:
         print("Aucun fichier texte trouvé après décompression.")
-        return
+        return False
     else:
-        data_file = extracted_files[0]
+        data_file = os.path.join(data_dir, extracted_files[0])
         print(f"📁 Fichier source trouvé : {data_file}")
 
     # Vérifier la taille du fichier
@@ -106,7 +112,8 @@ def update_database(extraction_date):
     print(f"📊 Taille du fichier : {file_size:,} octets ({file_size/1024/1024:.1f} MB)")
 
     # Connexion à la base de données (création si elle n'existe pas)
-    conn = sqlite3.connect('adresses.db')
+    os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     # Activer les clés étrangères
@@ -258,7 +265,7 @@ def update_database(extraction_date):
     except Exception as e:
         print(f"❌ Erreur lors de la lecture du fichier: {e}")
         conn.close()
-        return
+        return False
 
     conn.commit()
     conn.close()
@@ -272,6 +279,19 @@ def update_database(extraction_date):
     os.remove(data_file)
 
     print('La base de données a été mise à jour avec succès.')
+    return True
+
+def rebuild_database(db_path=DATABASE_PATH):
+    """Télécharge la dernière extraction et reconstruit la base indiquée."""
+    with tempfile.TemporaryDirectory(prefix='mssante_update_') as temp_dir:
+        extraction_date = download_and_extract(temp_dir)
+        if not extraction_date:
+            return ''
+
+        if not update_database(extraction_date, temp_dir, db_path):
+            return ''
+
+        return extraction_date
 
 if __name__ == '__main__':
     # Vérifier si un fichier d'extraction existe déjà

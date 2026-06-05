@@ -7,72 +7,105 @@ Application simple pour rechercher les adresses MSSanté des professionnels de s
 - 🔍 Recherche en temps réel des professionnels de santé
 - 📱 Interface web simple et intuitive
 - 📋 Copie d'adresses MSSanté en un clic
-- 🔄 Mise à jour automatique des données depuis l'annuaire santé
+- 🔄 Mise à jour de la base depuis l'application
 - 🌐 Accessible depuis le réseau local
+- 📦 Version autonome sans installation de Python
 
-## 🚀 Installation tout-en-un (Recommandé)
+## 🚀 Installation recommandée pour les utilisateurs
 
-**Une seule commande pour tout faire : installation + base de données + lancement !**
-
-### Windows
-1. **Télécharger** et extraire le projet
-2. **Double-cliquer** sur `scripts-windows\install_et_lancer_windows.bat`
-3. **Attendre** que tout s'installe automatiquement
-4. **L'application se lance** automatiquement dans votre navigateur
-
-### Mac
-1. **Ouvrir le Terminal** dans le dossier du projet
-2. **Copier-coller** cette commande :
-   ```bash
-   ./scripts/install_et_lancer_mac.sh
-   ```
-3. **Attendre** que tout s'installe automatiquement
-4. **L'application se lance** automatiquement
-
-**Note** : Si vous avez une erreur "Permission denied", copiez-collez d'abord :
-```bash
-chmod +x scripts/*.sh
-```
-
-## 🔧 Installation manuelle (Optionnel)
-
-Si vous préférez contrôler chaque étape :
-
-### Prérequis
-- **Python 3.11 ou supérieur** (3.12, 3.13...)
-- L'installation est automatique, le script utilise la version par défaut de votre système
-
-### Windows
-
-1. **Télécharger** et extraire le projet
-2. **Double-cliquer** sur `scripts-windows\install_windows.bat`
-3. **Lancer** l'application avec `scripts-windows\lancer_base_mssante.bat`
+Cette option ne nécessite pas d'installer Python.
 
 ### Mac
 
-1. **Ouvrir le Terminal** dans le dossier du projet
-2. **Copier-coller** cette commande :
-   ```bash
-   ./scripts/install_mac.sh
-   ```
-3. **Lancer** l'application :
-   ```bash
-   ./scripts/lancer_base_mssante_mac.sh
-   ```
+1. Télécharger `Adresses-MSSante-macOS-arm64.dmg`
+2. Ouvrir le DMG
+3. Glisser `Adresses MSSante.app` vers `Applications`
+4. Lancer l'application depuis `Applications`
 
-**Note** : Si vous avez une erreur "Permission denied", copiez-collez d'abord :
+Au premier lancement, macOS peut afficher un avertissement car l'application n'est pas signée. Dans ce cas : clic droit sur l'application, puis `Ouvrir`.
+
+### Windows
+
+1. Télécharger le dossier ou le zip Windows généré
+2. Ouvrir `Adresses MSSante.exe`
+3. L'application ouvre automatiquement le navigateur
+
+Windows SmartScreen peut afficher un avertissement car l'exécutable n'est pas signé.
+
+## 🛠️ Utilisation
+
+1. Lancer l'application
+2. Le navigateur s'ouvre sur `http://localhost:6150`
+3. Remplir un ou plusieurs champs de recherche
+4. Cliquer sur `Copier` pour copier l'adresse MSSanté
+
+## 🔄 Mise à jour de la base
+
+La base incluse dans l'application peut être mise à jour directement depuis l'interface.
+
+1. Ouvrir l'application
+2. Cliquer sur `Mettre à jour la base`
+3. Attendre la fin du téléchargement et de la reconstruction
+
+L'application télécharge la dernière extraction officielle depuis data.gouv.fr. Une connexion internet est nécessaire. En version autonome, la base mise à jour est stockée dans le dossier utilisateur :
+
+- Mac : `~/Library/Application Support/Adresses MSSante/adresses.db`
+- Windows : `%APPDATA%\Adresses MSSante\adresses.db`
+
+## 📦 Générer une version autonome
+
+Ces commandes sont destinées à la personne qui prépare les fichiers à distribuer.
+
+### Mac
 ```bash
-chmod +x scripts/*.sh
+./packaging/build_macos.sh
+./packaging/build_macos_dmg.sh
 ```
 
-## 📋 Première utilisation
+Fichiers générés :
+- `dist/Adresses MSSante.app`
+- `dist/Adresses-MSSante-macOS-arm64.dmg`
 
-1. **Lancer l'application** (voir installation ci-dessus)
-2. **Mettre à jour la base** de données :
-   - Windows : `scripts-windows\mise_a_jour_base_mssante.bat`
-   - Mac : `./scripts/mise_a_jour_base_mssante_mac.sh`
-3. **Ouvrir votre navigateur** sur l'URL affichée
-4. **Rechercher** un professionnel de santé
+### Windows
+```bat
+packaging\build_windows.bat
+```
+
+Fichier généré : `dist\Adresses MSSante\Adresses MSSante.exe`
+
+Chaque build embarque Python, Flask, l'interface web et une copie initiale de `adresses.db`. Le build Mac doit être généré sur Mac, et le build Windows sur Windows.
+
+## 🧑‍💻 Installation depuis le code source
+
+Cette option nécessite Python et sert surtout au développement ou au dépannage.
+
+### Installation tout-en-un
+
+Mac :
+```bash
+./scripts/install_et_lancer_mac.sh
+```
+
+Windows :
+```bat
+scripts-windows\install_et_lancer_windows.bat
+```
+
+### Installation manuelle
+
+Prérequis : Python 3.11 ou supérieur.
+
+Mac :
+```bash
+./scripts/install_mac.sh
+./scripts/lancer_base_mssante_mac.sh
+```
+
+Windows :
+```bat
+scripts-windows\install_windows.bat
+scripts-windows\lancer_base_mssante.bat
+```
 
 ## ⚠️ Important : L'application doit tourner en continu
 
@@ -130,13 +163,6 @@ Exemple : `http://192.168.86.100:6150`
 - Utiliser **Automator** pour créer une application de démarrage
 - Utiliser **crontab** pour la mise à jour hebdomadaire
 
-## 🛠️ Utilisation
-
-1. **Remplir** un ou plusieurs champs de recherche
-2. **Attendre** les résultats en temps réel
-3. **Cliquer** sur "Copier l'adresse MSSanté" pour copier l'adresse
-4. **Utiliser** l'adresse dans votre logiciel de messagerie
-
 ## 📁 Structure
 
 ```
@@ -145,6 +171,7 @@ adressesmssante/
 ├── creer_bd_mssante.py    # Mise à jour des données
 ├── config.py              # Configuration
 ├── requirements.txt       # Dépendances
+├── packaging/             # Builds autonomes PyInstaller
 ├── scripts/               # Scripts Mac/Linux
 ├── scripts-windows/       # Scripts Windows
 └── templates/             # Interface web
@@ -154,4 +181,4 @@ adressesmssante/
 
 - Application locale/réseau local uniquement
 - Aucune donnée personnelle stockée
-- Données officielles de l'annuaire santé 
+- Données officielles de l'annuaire santé

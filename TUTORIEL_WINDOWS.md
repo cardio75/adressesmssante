@@ -1,62 +1,69 @@
-# 🚀 Configuration du démarrage automatique sur Windows
+# Installation et utilisation - Windows
 
-## Prérequis
-- **Python 3.11 ou supérieur** (3.12, 3.13...)
-- L'installation est automatique
+## Installation recommandee
 
----
+Cette installation ne demande pas Python.
 
-## ⚠️ Pourquoi configurer le démarrage automatique ?
+1. Telecharger la version Windows generee
+2. Extraire le zip si necessaire
+3. Lancer `Adresses MSSante.exe`
 
-**L'application doit tourner en continu pour être accessible !**
-- Sans démarrage automatique, vous devez relancer l'application à chaque redémarrage du PC
-- L'application s'arrête si vous fermez le terminal
-- Le démarrage automatique garantit que l'application est toujours disponible
+Windows SmartScreen peut afficher un avertissement car l'executable n'est pas signe.
 
-## Option 1 : Planificateur de tâches (Recommandé)
+## Utilisation
 
-### Pour le démarrage automatique :
+L'application ouvre automatiquement le navigateur sur :
 
-1. **Ouvrir le Planificateur de tâches** (Win+R > taskschd.msc)
-2. **Créer une tâche basique**
-3. **Nom** : "Lancer MSSanté"
-4. **Déclencheur** : "Au démarrage de l'ordinateur"
-5. **Action** : "Démarrer un programme"
-   - **Programme** : `cmd.exe`
-   - **Arguments** : `/c "cd /d C:\chemin\vers\adressesmssante && venv\Scripts\activate.bat && python app.py"`
-6. **Cocher** "Exécuter avec les privilèges les plus élevés"
+```text
+http://localhost:6150
+```
 
-### Pour la mise à jour hebdomadaire :
+Pour un autre appareil du reseau local, utiliser l'adresse affichee au demarrage, par exemple :
 
-1. **Créer une nouvelle tâche**
-2. **Nom** : "Mise à jour MSSanté"
-3. **Déclencheur** : "Quotidiennement" > Choisir "Lundi"
-4. **Action** : "Démarrer un programme"
-   - **Programme** : `cmd.exe`
-   - **Arguments** : `/c "cd /d C:\chemin\vers\adressesmssante && venv\Scripts\activate.bat && python creer_bd_mssante.py"`
+```text
+http://192.168.x.x:6150
+```
 
-## Option 2 : Dossier Démarrage
+## Mise a jour de la base
 
-1. **Ouvrir** : Win+R > `shell:startup`
-2. **Créer un raccourci** vers votre script de lancement
-3. **Modifier les propriétés** du raccourci pour qu'il s'exécute en arrière-plan
+La mise a jour se fait directement dans l'application :
 
-## Vérification
+1. Ouvrir l'application
+2. Cliquer sur `Mettre a jour la base`
+3. Attendre le message de fin
 
-- L'application sera accessible sur `http://votre-ip:6150`
-- Vérifiez que le port 6150 n'est pas bloqué par le pare-feu Windows
-- Testez en redémarrant l'ordinateur
+Une connexion internet est necessaire. La base mise a jour est stockee dans :
 
-## Dépannage
+```text
+%APPDATA%\Adresses MSSante\adresses.db
+```
 
-Si l'application ne démarre pas automatiquement :
-1. Vérifiez les logs dans l'Observateur d'événements
-2. Testez manuellement le script de lancement
-3. Vérifiez les permissions de l'utilisateur
+## Installation depuis le code source
 
-## Alternative : Lancement manuel
+Cette option sert surtout au developpement ou au depannage. Elle necessite Python 3.11 ou superieur.
 
-Si vous préférez lancer l'application manuellement :
-- Double-clic sur `scripts-windows\lancer_base_mssante.bat`
-- Gardez la fenêtre ouverte
-- L'application s'arrête si vous fermez la fenêtre 
+```bat
+cd C:\chemin\vers\adressesmssante
+scripts-windows\install_windows.bat
+scripts-windows\lancer_base_mssante.bat
+```
+
+Pour mettre a jour la base en ligne de commande :
+
+```bat
+scripts-windows\mise_a_jour_base_mssante.bat
+```
+
+## Generer l'executable Windows
+
+Depuis la racine du projet, sur Windows :
+
+```bat
+packaging\build_windows.bat
+```
+
+L'executable est cree ici :
+
+```text
+dist\Adresses MSSante\Adresses MSSante.exe
+```
